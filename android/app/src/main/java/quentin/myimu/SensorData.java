@@ -9,17 +9,17 @@ import static android.os.SystemClock.elapsedRealtimeNanos;
  * Created by quentin on 11/03/15.
  */
 public class SensorData {
-    private final long time;
+    private final long timeMillis;
     private final float[] data;
     private final Sensor sensor;
-    SensorData(SensorEvent event) {
+    SensorData(SensorEvent event, long timeMillis) {
         this.sensor = event.sensor;
         this.data = event.values;
-        this.time = elapsedRealtimeNanos();
+        this.timeMillis = timeMillis;
     }
 
     public String getCSV() {
-        String str = Long.toString(time/1000);
+        String str = Long.toString(timeMillis);
         switch (sensor.getType()) {
             case Sensor.TYPE_ORIENTATION:
                 str += ",ORI";

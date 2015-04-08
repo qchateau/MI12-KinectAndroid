@@ -1,7 +1,9 @@
 package quentin.myimu;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.util.Log;
+import android.widget.Button;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -14,8 +16,7 @@ import java.util.Observable;
  * Created by quentin on 12/03/15.
  */
 
-
-public class Communication {
+public class Communication extends Observable {
     static private Communication com;
     private Socket socket;
     private Thread thread;
@@ -31,44 +32,59 @@ public class Communication {
         port = n_port;
         thread = new Thread(new Runnable() {
             public void run() {
+                isOpened = false;
+                setChanged();
                 try {
                     socket = new Socket(host, port);
                     outStream = socket.getOutputStream();
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
+                    notifyObservers(new CommunicationState(isOpened));
                     return;
                 }
                 isOpened = true;
-                while (!Thread.currentThread().isInterrupted()) {
+                setChanged();
+                while (isOpened && !Thread.currentThread().isInterrupted()) {
                     String str = "";
                     try {
                         synchronized (msgFifo) {
                             str = msgFifo.removeFirst();
                         }
-                    }
-                    catch (NoSuchElementException e) {
+                    } catch (NoSuchElementException e) {
                     }
                     try {
                         outStream.write(str.getBytes());
-                    }
-                    catch (IOException e) {
-                        Log.e(TAG, "Could not send : "+str);
+                    } catch (IOException e) {
+                        Log.e(TAG, "Could not send : " + str);
                         e.printStackTrace();
+                        isOpened = false;
+                        setChanged();
                     }
+                    notifyObservers(new CommunicationState(isOpened));
                 }
                 try {
+                    Log.e(TAG, "Closing socket");
                     socket.close();
+                } catch (IOException e) {
+                    Log.e(TAG, "Could not close socket");
+                    e.printStackTrace();
                 }
-                catch (IOException e) {}
             }
         });
+    }
+
+    public void Connect() {
         thread.start();
+    }
+
+    public void Disconnect() {
+        isOpened = false;
+        setChanged();
     }
 
     public static Communication getInstance(String n_host, int n_port) {
         if (com != null) {
-            com.thread.interrupt();
+            com.Disconnect();
         }
         com = new Communication(n_host, n_port);
         return com;

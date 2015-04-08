@@ -5,215 +5,280 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".Main">
 
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/editTextURI"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="84dp"
-        android:minWidth="300dp"
-        android:autoText="false"
-        android:text="192.168.1.1:11337" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Connect"
-        android:id="@+id/buttonConnect"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="29dp"
-        android:nestedScrollingEnabled="false"
-        android:onClick="onConnect" />
-
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_above="@+id/editTextURI">
+        android:weightSum="1">
 
-        <TableLayout
+        <LinearLayout
+            android:orientation="vertical"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/DataDisplayTable"
-            android:paddingBottom="10dp">
+            android:layout_above="@+id/editTextIP"
+            android:weightSum="1"
+            android:paddingBottom="20dp">
 
-            <TableRow
+            <TableLayout
                 android:layout_width="fill_parent"
-                android:layout_height="fill_parent">
+                android:layout_height="wrap_content"
+                android:id="@+id/DataDisplayTable"
+                android:paddingBottom="10dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="X"
-                    android:id="@+id/textViewX"
-                    android:layout_column="1"
-                    android:textStyle="bold"
-                    android:minWidth="95dp"
-                    android:maxWidth="95dp" />
+                <TableRow
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="Y"
-                    android:id="@+id/textViewY"
-                    android:layout_column="2"
-                    android:textStyle="bold"
-                    android:minWidth="95dp"
-                    android:maxWidth="95dp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="X"
+                        android:id="@+id/textViewX"
+                        android:layout_column="1"
+                        android:textStyle="bold"
+                        android:minWidth="95dp"
+                        android:maxWidth="95dp" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="Z"
-                    android:id="@+id/textViewZ"
-                    android:layout_column="3"
-                    android:textStyle="bold"
-                    android:minWidth="95dp"
-                    android:maxWidth="95dp" />
-            </TableRow>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="Y"
+                        android:id="@+id/textViewY"
+                        android:layout_column="2"
+                        android:textStyle="bold"
+                        android:minWidth="95dp"
+                        android:maxWidth="95dp" />
 
-            <TableRow
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="Z"
+                        android:id="@+id/textViewZ"
+                        android:layout_column="3"
+                        android:textStyle="bold"
+                        android:minWidth="95dp"
+                        android:maxWidth="95dp" />
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="Accel"
+                        android:id="@+id/textViewAccel"
+                        android:layout_column="0"
+                        android:textStyle="bold"
+                        android:paddingRight="10dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="0"
+                        android:id="@+id/textViewAx"
+                        android:layout_column="1"
+                        android:minWidth="95dp"
+                        android:maxWidth="95dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="0"
+                        android:id="@+id/textViewAy"
+                        android:layout_column="2"
+                        android:minWidth="95dp"
+                        android:maxWidth="95dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="0"
+                        android:id="@+id/textViewAz"
+                        android:layout_column="3"
+                        android:minWidth="95dp"
+                        android:maxWidth="95dp" />
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="Ori"
+                        android:id="@+id/textViewOri"
+                        android:layout_column="0"
+                        android:textStyle="bold"
+                        android:paddingRight="10dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="0"
+                        android:id="@+id/textViewOx"
+                        android:layout_column="1"
+                        android:minWidth="95dp"
+                        android:maxWidth="95dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="0"
+                        android:id="@+id/textViewOy"
+                        android:layout_column="2"
+                        android:minWidth="95dp"
+                        android:maxWidth="95dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="0"
+                        android:id="@+id/textViewOz"
+                        android:layout_column="3"
+                        android:minWidth="95dp"
+                        android:maxWidth="95dp" />
+                </TableRow>
+
+            </TableLayout>
+
+            <TableLayout
                 android:layout_width="fill_parent"
-                android:layout_height="fill_parent">
+                android:layout_height="0dp"
+                android:id="@+id/InfoDisplayTable"
+                android:layout_weight="1.35">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="Accel"
-                    android:id="@+id/textViewAccel"
-                    android:layout_column="0"
-                    android:textStyle="bold"
-                    android:paddingRight="10dp" />
+                <TableRow
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="0"
-                    android:id="@+id/textViewAx"
-                    android:layout_column="1"
-                    android:minWidth="95dp"
-                    android:maxWidth="95dp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="Accelerometer Sample Rate"
+                        android:id="@+id/textViewAccelSamRateTitle"
+                        android:paddingRight="20dp" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="0"
-                    android:id="@+id/textViewAy"
-                    android:layout_column="2"
-                    android:minWidth="95dp"
-                    android:maxWidth="95dp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="0"
+                        android:id="@+id/textViewAccelSampleRateValue" />
+                </TableRow>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="0"
-                    android:id="@+id/textViewAz"
-                    android:layout_column="3"
-                    android:minWidth="95dp"
-                    android:maxWidth="95dp" />
-            </TableRow>
+                <TableRow
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent">
 
-            <TableRow
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="Orientation Sample Rate"
+                        android:id="@+id/textViewOriSamplerateTitle" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="Ori"
-                    android:id="@+id/textViewOri"
-                    android:layout_column="0"
-                    android:textStyle="bold"
-                    android:paddingRight="10dp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="0"
+                        android:id="@+id/textViewOriSampleRateValue" />
+                </TableRow>
+            </TableLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="0"
-                    android:id="@+id/textViewOx"
-                    android:layout_column="1"
-                    android:minWidth="95dp"
-                    android:maxWidth="95dp" />
+        </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="0"
-                    android:id="@+id/textViewOy"
-                    android:layout_column="2"
-                    android:minWidth="95dp"
-                    android:maxWidth="95dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Time"
+            android:id="@+id/textTimeLabel" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="0"
-                    android:id="@+id/textViewOz"
-                    android:layout_column="3"
-                    android:minWidth="95dp"
-                    android:maxWidth="95dp" />
-            </TableRow>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="-"
+            android:id="@+id/textTimeValue"
+            android:paddingLeft="20dp"
+            android:paddingBottom="20dp" />
 
-        </TableLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="IP"
+            android:id="@+id/textIP" />
 
-        <TableLayout
+        <EditText
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/InfoDisplayTable">
+            android:id="@+id/editTextIP"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="0dp"
+            android:minWidth="300dp"
+            android:autoText="false"
+            android:text="192.168.1.1"
+            android:singleLine="true" />
 
-            <TableRow
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Port"
+            android:id="@+id/textPort" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="Accelerometer Sample Rate"
-                    android:id="@+id/textViewAccelSamRateTitle"
-                    android:paddingRight="20dp" />
+        <EditText
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/editTextPort"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="0dp"
+            android:minWidth="300dp"
+            android:autoText="false"
+            android:text="11337"
+            android:singleLine="true" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="0"
-                    android:id="@+id/textViewAccelSampleRateValue" />
-            </TableRow>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Disconnected"
+            android:id="@+id/comState"
+            android:textSize="40sp"
+            android:textAlignment="center"
+            android:layout_marginTop="30dp"
+            android:layout_gravity="center_horizontal"
+            android:textColor="#FF0000" />
 
-            <TableRow
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="Orientation Sample Rate"
-                    android:id="@+id/textViewOriSamplerateTitle" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="0"
-                    android:id="@+id/textViewOriSampleRateValue" />
-            </TableRow>
-        </TableLayout>
-
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Connect/Disconnect"
+            android:id="@+id/buttonConnect"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="29dp"
+            android:nestedScrollingEnabled="false"
+            android:onClick="onConnect" />
     </LinearLayout>
 
 </RelativeLayout>

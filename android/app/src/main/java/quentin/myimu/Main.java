@@ -2,7 +2,6 @@ package quentin.myimu;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.drawable.GradientDrawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -10,71 +9,26 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import java.net.URI;
+import java.util.Observable;
+import java.util.Observer;
 
-public class Main extends Activity {
+public class Main extends Activity implements Observer {
     private static final String TAG = Activity.class.getSimpleName();
-    private EditText editTextURI;
+    private EditText editTextIP, editTextPort;
     private Communication communication;
     private MySensors sensors;
+    private MyTime time;
 
-    private class MySensors implements SensorEventListener {
-        private TextView textViewAx, textViewAy, textViewAz, textViewOx, textViewOy, textViewOz;
-        private SensorManager mSensorManager;
-        private Sensor Accelerometer, Orientation;
+    public Communication getCommunication() {
+        return communication;
+    }
 
-        MySensors() {
-            textViewAx = (TextView) findViewById(R.id.textViewAx);
-            textViewAy = (TextView) findViewById(R.id.textViewAy);
-            textViewAz = (TextView) findViewById(R.id.textViewAz);
-            textViewOx = (TextView) findViewById(R.id.textViewOx);
-            textViewOy = (TextView) findViewById(R.id.textViewOy);
-            textViewOz = (TextView) findViewById(R.id.textViewOz);
-
-            mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-            Accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-            Orientation = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
-
-            TextView accelSampleRate = (TextView) findViewById(R.id.textViewAccelSampleRateValue);
-            accelSampleRate.setText(Integer.toString(1000000/(Accelerometer.getMinDelay()))+" Hz");
-
-            TextView oriSampleRate = (TextView) findViewById(R.id.textViewOriSampleRateValue);
-            oriSampleRate.setText(Integer.toString(1000000/(Orientation.getMinDelay()))+" Hz");
-        }
-
-        @Override
-        public final void onSensorChanged(SensorEvent event) {
-            if (event.sensor == Accelerometer) {
-                textViewAx.setText(String.format("%.4f", event.values[0]));
-                textViewAy.setText(String.format("%.4f", event.values[1]));
-                textViewAz.setText(String.format("%.4f", event.values[2]));
-            }
-            else if (event.sensor == Orientation) {
-                textViewOx.setText(String.format("%.4f", event.values[0]));
-                textViewOy.setText(String.format("%.4f", event.values[1]));
-                textViewOz.setText(String.format("%.4f", event.values[2]));
-            }
-            if (communication != null && communication.isConnected()){
-                communication.writeToSocket(new SensorData(event).getCSV());
-            }
-        }
-
-        @Override
-        public final void onAccuracyChanged(Sensor sensor, int accuracy) {
-            // Do something here if sensor accuracy changes.
-        }
-
-        protected void onResume() {
-            mSensorManager.registerListener(this, Accelerometer, Accelerometer.getMinDelay());
-            mSensorManager.registerListener(this, Orientation, Orientation.getMinDelay());
-        }
-
-        protected void onPause() {
-            mSensorManager.unregisterListener(this);
-        }
+    public MyTime getTime() {
+        return time;
     }
 
     @Override
@@ -82,12 +36,15 @@ public class Main extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        sensors = new MySensors();
-        editTextURI = (EditText) findViewById(R.id.editTextURI);
+        sensors = new MySensors(this);
+        time = new MyTime(this, (TextView)findViewById(R.id.textTimeValue));
+        editTextIP = (EditText) findViewById(R.id.editTextIP);
+        editTextPort = (EditText) findViewById(R.id.editTextPort);
     }
 
     @Override
     protected void onStop() {
+        if (communication != null) communication.Disconnect();
         super.onStop();
     }
 
@@ -104,17 +61,24 @@ public class Main extends Activity {
     }
 
     public void onConnect(View v) {
-        URI uri;
-        try {
-            uri = new URI("my://" + editTextURI.getText());
+        if (communication != null && communication.isConnected()) {
+            communication.Disconnect();
+        } else {
+            String host = editTextIP.getText().toString();
+            int port = Integer.parseInt(editTextPort.getText().toString());
+            Log.d(TAG, "Host:" + host + " Port:" + Integer.toString(port));
+            communication = Communication.getInstance(host, port);
+            communication.addObserver(this);
+            communication.Connect();
         }
-        catch (Exception e) {
-            e.printStackTrace();
-            return;
+    }
+
+    @Override
+    public void update(Observable observable, Object data) {
+        if (data instanceof CommunicationState) {
+            CommunicationState com_state = (CommunicationState)data;
+            com_state.setTextView((TextView) findViewById(R.id.comState));
+            runOnUiThread(com_state); // updates connect button
         }
-        String host = uri.getHost();
-        int port = uri.getPort();
-        Log.d(TAG, "Host:"+host+" Port:"+Integer.toString(port));
-        communication = Communication.getInstance(host, port);
     }
 }
