@@ -1,9 +1,6 @@
-package quentin.myimu;
+package quentin.MI12;
 
-import android.app.Activity;
-import android.graphics.Color;
 import android.util.Log;
-import android.widget.Button;
 
 import java.io.IOException;
 import java.io.OutputStream;

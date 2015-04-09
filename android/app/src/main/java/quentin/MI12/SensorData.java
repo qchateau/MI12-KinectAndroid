@@ -1,9 +1,7 @@
-package quentin.myimu;
+package quentin.MI12;
 
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
-
-import static android.os.SystemClock.elapsedRealtimeNanos;
 
 /**
  * Created by quentin on 11/03/15.

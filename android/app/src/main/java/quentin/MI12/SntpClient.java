@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package quentin.myimu;
+package quentin.MI12;
 
 import android.os.SystemClock;
 import android.util.Log;

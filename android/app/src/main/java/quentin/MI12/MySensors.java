@@ -1,13 +1,11 @@
-package quentin.myimu;
+package quentin.MI12;
 
-import android.app.Activity;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.widget.TextView;
-import android.view.View;
 
 /**
  * Created by quentin on 08/04/15.

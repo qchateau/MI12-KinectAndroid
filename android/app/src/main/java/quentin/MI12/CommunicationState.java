@@ -1,4 +1,4 @@
-package quentin.myimu;
+package quentin.MI12;
 
 import android.graphics.Color;
 import android.widget.TextView;
