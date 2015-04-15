@@ -1,4 +1,4 @@
-package quentin.MI12;
+package mi12.androidapp;
 
 import android.content.Context;
 import android.hardware.Sensor;

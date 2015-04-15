@@ -1,4 +1,4 @@
-package quentin.MI12;
+package mi12.androidapp;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -31,7 +31,7 @@ public class Main extends Activity implements Observer {
         setContentView(R.layout.activity_main);
 
         sensors = new MySensors(this);
-        time = new MyTime(this, (TextView)findViewById(R.id.textTimeValue));
+        time = new MyTime(this, (TextView)findViewById(R.id.textTimeValue), (TextView)findViewById(R.id.textTimeString));
         editTextIP = (EditText) findViewById(R.id.editTextIP);
         editTextPort = (EditText) findViewById(R.id.editTextPort);
     }
@@ -61,9 +61,11 @@ public class Main extends Activity implements Observer {
             String host = editTextIP.getText().toString();
             int port = Integer.parseInt(editTextPort.getText().toString());
             Log.d(TAG, "Host:" + host + " Port:" + Integer.toString(port));
-            communication = Communication.getInstance(host, port);
-            communication.addObserver(this);
-            communication.Connect();
+            if (time.updateTime(host)) {
+                communication = Communication.getInstance(host, port);
+                communication.addObserver(this);
+                communication.Connect();
+            }
         }
     }
 

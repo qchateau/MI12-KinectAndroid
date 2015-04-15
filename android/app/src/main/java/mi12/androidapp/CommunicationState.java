@@ -1,4 +1,4 @@
-package quentin.MI12;
+package mi12.androidapp;
 
 import android.graphics.Color;
 import android.widget.TextView;
@@ -24,7 +24,7 @@ public class CommunicationState implements Runnable {
     public void run() {
         if (isConnected) {
             view.setText("Connected");
-            view.setTextColor(Color.GREEN);
+            view.setTextColor(Color.rgb(0,150,0));
         }
         else {
             view.setText("Disconnected");

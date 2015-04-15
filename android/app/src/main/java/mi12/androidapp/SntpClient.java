@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package quentin.MI12;
+package mi12.androidapp;
 
 import android.os.SystemClock;
+import android.util.Config;
 import android.util.Log;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -58,9 +60,8 @@ public class SntpClient
      * @return true if the transaction was successful.
      */
     public boolean requestTime(String host, int timeout) {
-        DatagramSocket socket = null;
         try {
-            socket = new DatagramSocket();
+            DatagramSocket socket = new DatagramSocket();
             socket.setSoTimeout(timeout);
             InetAddress address = InetAddress.getByName(host);
             byte[] buffer = new byte[NTP_PACKET_SIZE];
@@ -83,6 +84,7 @@ public class SntpClient
             socket.receive(response);
             long responseTicks = SystemClock.elapsedRealtime();
             long responseTime = requestTime + (responseTicks - requestTicks);
+            socket.close();
 
             // extract the results
             long originateTime = readTimeStamp(buffer, ORIGINATE_TIME_OFFSET);
@@ -98,8 +100,8 @@ public class SntpClient
             //             = (transit + skew - transit + skew)/2
             //             = (2 * skew)/2 = skew
             long clockOffset = ((receiveTime - originateTime) + (transmitTime - responseTime))/2;
-            // if (false) Log.d(TAG, "round trip: " + roundTripTime + " ms");
-            // if (false) Log.d(TAG, "clock offset: " + clockOffset + " ms");
+            // if (Config.LOGD) Log.d(TAG, "round trip: " + roundTripTime + " ms");
+            // if (Config.LOGD) Log.d(TAG, "clock offset: " + clockOffset + " ms");
 
             // save our results - use the times on this side of the network latency
             // (response rather than request time)
@@ -107,12 +109,8 @@ public class SntpClient
             mNtpTimeReference = responseTicks;
             mRoundTripTime = roundTripTime;
         } catch (Exception e) {
-            if (false) Log.d(TAG, "request time failed: " + e);
+            if (Config.LOGD) Log.d(TAG, "request time failed: " + e);
             return false;
-        } finally {
-            if (socket != null) {
-                socket.close();
-            }
         }
 
         return true;
@@ -167,17 +165,17 @@ public class SntpClient
     /**
      * Reads the NTP time stamp at the given offset in the buffer and returns 
      * it as a system time (milliseconds since January 1, 1970).
-     */
+     */    
     private long readTimeStamp(byte[] buffer, int offset) {
         long seconds = read32(buffer, offset);
         long fraction = read32(buffer, offset + 4);
-        return ((seconds - OFFSET_1900_TO_1970) * 1000) + ((fraction * 1000L) / 0x100000000L);
+        return ((seconds - OFFSET_1900_TO_1970) * 1000) + ((fraction * 1000L) / 0x100000000L);        
     }
 
     /**
      * Writes system time (milliseconds since January 1, 1970) as an NTP time stamp 
      * at the given offset in the buffer.
-     */
+     */    
     private void writeTimeStamp(byte[] buffer, int offset, long time) {
         long seconds = time / 1000L;
         long milliseconds = time - seconds * 1000L;
