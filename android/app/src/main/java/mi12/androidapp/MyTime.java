@@ -72,7 +72,7 @@ public class MyTime implements Runnable {
             threadUpdateNtp.start();
         }
         while (threadUpdateNtp.isAlive()) { SystemClock.sleep(10); }
-        return (reference_time_millis_offset != 0);
+        return (reference_time_millis_offset == 0);
     }
 
     public long getTimeMillis() {

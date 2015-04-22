@@ -61,7 +61,7 @@ public class Main extends Activity implements Observer {
             String host = editTextIP.getText().toString();
             int port = Integer.parseInt(editTextPort.getText().toString());
             Log.d(TAG, "Host:" + host + " Port:" + Integer.toString(port));
-            if (time.updateTime(host)) {
+            if (!time.updateTime(host)) {
                 communication = Communication.getInstance(host, port);
                 communication.addObserver(this);
                 communication.Connect();
