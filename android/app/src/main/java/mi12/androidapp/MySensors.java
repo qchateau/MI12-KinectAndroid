@@ -28,8 +28,8 @@ public class MySensors implements SensorEventListener {
         TextView oriSampleRate = (TextView) main.findViewById(R.id.textViewOriSampleRateValue);
 
         mSensorManager = (SensorManager) main.getSystemService(Context.SENSOR_SERVICE);
-        Accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        Orientation = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+        Accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
+        Orientation = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
 
         try {
             accelSampleRate.setText(Integer.toString(1000000 / (Accelerometer.getMinDelay())) + " Hz");
@@ -47,20 +47,32 @@ public class MySensors implements SensorEventListener {
 
     @Override
     public final void onSensorChanged(SensorEvent event) {
+        float [] vals;
         if (event.sensor == Accelerometer) {
-            textViewAx.setText(String.format("%.4f", event.values[0]));
-            textViewAy.setText(String.format("%.4f", event.values[1]));
-            textViewAz.setText(String.format("%.4f", event.values[2]));
+            float[] rotMat = new float[9];
+            SensorManager.getRotationMatrixFromVector(rotMat,
+                    event.values);
+            SensorManager.remapCoordinateSystem(rotMat,
+                    SensorManager.AXIS_X, SensorManager.AXIS_Y, rotMat);
+            vals = new float[3];
+            SensorManager.getOrientation(rotMat, vals);
+            textViewAx.setText(String.format("%.4f", vals[0]));
+            textViewAy.setText(String.format("%.4f", vals[1]));
+            textViewAz.setText(String.format("%.4f", vals[2]));
         }
         else if (event.sensor == Orientation) {
-            textViewOx.setText(String.format("%.4f", event.values[0]));
-            textViewOy.setText(String.format("%.4f", event.values[1]));
-            textViewOz.setText(String.format("%.4f", event.values[2]));
+            vals = event.values;
+            textViewOx.setText(String.format("%.4f", vals[0]));
+            textViewOy.setText(String.format("%.4f", vals[1]));
+            textViewOz.setText(String.format("%.4f", vals[2]));
+        }
+        else {
+            return;
         }
         Communication communication = main.getCommunication();
         MyTime time = main.getTime();
         if (communication != null && communication.isConnected()){
-            communication.writeToSocket(new SensorData(event, time.getTimeMillis()).getCSV());
+            communication.writeToSocket(new SensorData(vals, event.sensor, time.getTimeMillis()).getCSV());
         }
     }
 
