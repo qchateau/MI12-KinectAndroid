@@ -24,6 +24,7 @@ public class SensorData {
                 str += ",ORI";
                 break;
             case Sensor.TYPE_ACCELEROMETER:
+            case Sensor.TYPE_LINEAR_ACCELERATION:
                 str += ",ACCEL";
                 break;
             default:
