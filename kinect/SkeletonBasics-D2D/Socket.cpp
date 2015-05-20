@@ -63,7 +63,7 @@ Socket::~Socket(){
 
 void Socket::pushHand(char side, int skel_id, const Vector4 &vec){
 	char buffer[512];
-	sprintf_s(buffer, 512, "%i;%c;%f;%f;%f\n", skel_id, side, vec.x, vec.y, vec.z);
+	sprintf_s(buffer, 512, "%i;%s;%f;%f;%f\n", skel_id, side, vec.x, vec.y, vec.z);
 	fprintf(print_out, "Sending:%c", buffer);
 	send(connection, buffer, strlen(buffer), 0);
 };
