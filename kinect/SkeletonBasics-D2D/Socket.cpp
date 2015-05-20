@@ -3,7 +3,10 @@
 #include <stdlib.h>
 
 
-Socket::Socket(){
+
+Socket::Socket() :
+connected(false)
+{
 
 	print_out = fopen("out.txt", "w");
 	if (print_out < 0){
@@ -37,6 +40,17 @@ Socket::Socket(){
 
 	printf("Bind done");
 
+	serverThread = new std::thread(&Socket::_accept, this);
+
+}
+
+
+Socket::~Socket(){
+
+
+}
+
+void Socket::_accept(){
 	listen(server, 0);
 
 	printf("Waiting for incoming connections...");
@@ -52,18 +66,15 @@ Socket::Socket(){
 	}
 
 	puts("Connection accepted");
-}
 
-
-Socket::~Socket(){
-
-
+	connected = true;
 }
 
 
 void Socket::pushHand(char side, int skel_id, const Vector4 &vec){
+	if (!connected) return;
 	char buffer[512];
-	sprintf_s(buffer, 512, "%i;%s;%f;%f;%f\n", skel_id, side, vec.x, vec.y, vec.z);
-	fprintf(print_out, "Sending:%c", buffer);
+	sprintf_s(buffer, 512, "%i;%c;%f;%f;%f\n", skel_id, side, vec.x, vec.y, vec.z);
+	fprintf(print_out, "Sending:%s", buffer);
 	send(connection, buffer, strlen(buffer), 0);
 };

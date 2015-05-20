@@ -6,6 +6,7 @@
 #include "NuiApi.h"
 #include "Data.h"
 #include <WinSock2.h>
+#include <thread>
 #pragma comment(lib, "ws2_32.lib")
 
 class Socket
@@ -16,6 +17,10 @@ class Socket
 	SOCKADDR_IN server_addr;
 	SOCKADDR_IN connection_addr;
 	FILE *print_out;
+	std::thread *serverThread;
+
+	void _accept();
+	bool connected;
 public:
 	Socket();
 	~Socket();
