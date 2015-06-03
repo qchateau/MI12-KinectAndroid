@@ -56,6 +56,7 @@ public class MySensors implements SensorEventListener {
         if (event.sensor == Accelerometer) {
             acc_vals = event.values;
             float[] rotMat = new float[9];
+            MyTime time = main.getTime();
             SensorManager.getRotationMatrixFromVector(rotMat, ori_vals);
             corrected_acc_vals[0] = rotMat[0] * acc_vals[0] + rotMat[1] * acc_vals[1] + rotMat[2] * acc_vals[2];
             corrected_acc_vals[1] = rotMat[3] * acc_vals[0] + rotMat[4] * acc_vals[1] + rotMat[5] * acc_vals[2];
@@ -63,7 +64,6 @@ public class MySensors implements SensorEventListener {
             vals = corrected_acc_vals;
 
             Communication communication = main.getCommunication();
-            MyTime time = main.getTime();
             if (communication != null && communication.isConnected()){
                 communication.writeToSocket(new SensorData(vals, event.sensor, time.getTimeMillis()).getCSV());
             }
