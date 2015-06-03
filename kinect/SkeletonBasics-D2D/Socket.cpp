@@ -1,11 +1,11 @@
 #include "Socket.h"
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <WinBase.h>
 
 
 Socket::Socket() :
-connected(false)
+connected(false), _lastHand(-1)
 {
 
 	print_out = fopen("out.txt", "w");
@@ -46,8 +46,6 @@ connected(false)
 
 
 Socket::~Socket(){
-
-
 }
 
 void Socket::_accept(){
@@ -62,6 +60,8 @@ void Socket::_accept(){
 	}
 	else{
 		send(connection, "Hello world!\r\n", 14, 0);
+		u_long iMode = 1; //need pointer for one value...
+		ioctlsocket(connection, FIONBIO, &iMode); //set non-blocking mode
 		//closesocket(connection);
 	}
 
@@ -71,10 +71,39 @@ void Socket::_accept(){
 }
 
 
-void Socket::pushHand(char side, int skel_id, const Vector4 &vec){
-	if (!connected) return;
-	char buffer[512];
-	sprintf_s(buffer, 512, "%i;%c;%f;%f;%f\n", skel_id, side, vec.x, vec.y, vec.z);
-	fprintf(print_out, "Sending:%s", buffer);
-	send(connection, buffer, strlen(buffer), 0);
+UINT64 getTime(){
+	FILETIME fileTime;
+	GetSystemTimeAsFileTime(&fileTime);
+	UINT64 time;
+	time = (UINT64)fileTime.dwLowDateTime + ((UINT64)(fileTime.dwHighDateTime) << 32LL); //a direct cast could cause aligment issues
+	time /= 10000; //fileTime unit is 100ns, so 1ms=1000us=10000ns
+	return time;
+}
+
+void Socket::_send(char* buffer){
+	//fprintf(print_out, "%s", buffer);
+	size_t size = strlen(buffer);
+	fwrite(buffer, sizeof(char), size, print_out);
+	if (connected) {
+		int sent = send(connection, buffer, size, 0);
+		if (sent != size){
+			fprintf(print_out, "ERROR sent %i instead of %i\n", sent, size);
+		}
+	}
+}
+
+void Socket::frame(boolean start){	
+	if (start) {
+		currentFrameTime = getTime();
+	} else {
+		char buffer[128];
+		sprintf_s(buffer, sizeof(buffer), "E;%I64u\n", currentFrameTime);
+		_send(buffer);
+	}	
+}
+
+void Socket::pushHand(int hand_id, const Vector4 &vec){
+	char buffer[256];
+	sprintf_s(buffer, sizeof(buffer), "%i;%f;%f;%f\n", hand_id, vec.x, vec.y, vec.z);
+	_send(buffer);
 };
