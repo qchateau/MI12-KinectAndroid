@@ -21,10 +21,18 @@ class Socket
 
 	void _accept();
 	bool connected;
+
+	UINT64 currentFrameTime;
+	void _send(char* buffer);
+	void _parse();
+	int _parseString(const char* in);
+
+	int _lastHand;
 public:
 	Socket();
 	~Socket();
-	void pushHand(char side, int skel_id, const Vector4 &vec);
-
+	void frame(boolean start);
+	void pushHand(int hand_id, const Vector4 &vec);
+	inline int lastHand(){ return _lastHand; }
 };
 

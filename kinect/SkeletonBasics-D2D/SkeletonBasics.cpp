@@ -154,7 +154,9 @@ void CSkeletonBasics::Update()
     // Wait for 0ms, just quickly test if it is time to process a skeleton
     if ( WAIT_OBJECT_0 == WaitForSingleObject(m_hNextSkeletonEvent, 0) )
     {
+		socket.frame(true);
         ProcessSkeleton();
+		socket.frame(false);
     }
 }
 
@@ -336,12 +338,15 @@ void CSkeletonBasics::ProcessSkeleton()
 
     for (int i = 0 ; i < NUI_SKELETON_COUNT; ++i)
     {
-        NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
+		const NUI_SKELETON_DATA & skelData = skeletonFrame.SkeletonData[i];
+		NUI_SKELETON_TRACKING_STATE trackingState = skelData.eTrackingState;
 
         if (NUI_SKELETON_TRACKED == trackingState)
         {
             // We're tracking the skeleton, draw it
-            DrawSkeleton(skeletonFrame.SkeletonData[i], i, width, height);
+			socket.pushHand(i * 2,     skelData.SkeletonPositions[NUI_SKELETON_POSITION_HAND_LEFT]);
+			socket.pushHand(i * 2 + 1, skelData.SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT]);
+			DrawSkeleton(skelData, i, width, height);
         }
         else if (NUI_SKELETON_POSITION_ONLY == trackingState)
         {
@@ -367,13 +372,6 @@ void CSkeletonBasics::ProcessSkeleton()
     }
 }
 
-
-
-
-void printVector4(FILE *fd, const Vector4 &vec){
-	fprintf(fd, "(%f,%f,%f,%f)", vec.x, vec.y, vec.z, vec.w);
-	
-}
 
 /// <summary>
 /// Draws a skeleton
@@ -418,10 +416,6 @@ void CSkeletonBasics::DrawSkeleton(const NUI_SKELETON_DATA & skel, int skel_id, 
     DrawBone(skel, NUI_SKELETON_POSITION_HIP_RIGHT, NUI_SKELETON_POSITION_KNEE_RIGHT);
     DrawBone(skel, NUI_SKELETON_POSITION_KNEE_RIGHT, NUI_SKELETON_POSITION_ANKLE_RIGHT);
     DrawBone(skel, NUI_SKELETON_POSITION_ANKLE_RIGHT, NUI_SKELETON_POSITION_FOOT_RIGHT);
-
-
-	socket.pushHand('R', skel_id, skel.SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT]);
-	socket.pushHand('L', skel_id, skel.SkeletonPositions[NUI_SKELETON_POSITION_HAND_LEFT]);
 
     // Draw the joints in a different color
     for (i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i)
