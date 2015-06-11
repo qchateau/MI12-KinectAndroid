@@ -5,10 +5,11 @@ import math
 from statistics import variance
 
 # f = open('test2.txt', 'w')
+kinect_read_buffer = ""
 
-regex_android = re.compile("^b'(?P<time>[0-9]{14}),ACCEL,(?P<x>-?[0-9]+.[0-9]+),(?P<y>-?[0-9]+.[0-9]+),(?P<z>-?[0-9]+.[0-9]+)\\\\n'$")
-regex_kinect = re.compile("(?P<number>[0-9]+);(?P<x>-?[0-9]+.[0-9]+);(?P<y>-?[0-9]+.[0-9]+);(?P<z>-?[0-9]+.[0-9]+)\\\\n")
-regex_kinect_time = re.compile("^b'.+E;(?P<time>[0-9]{14})\\\\n'$")
+regex_android = re.compile("^b'(?P<time>[0-9]{13}),ACCEL,(?P<x>-?[0-9]+.[0-9]+),(?P<y>-?[0-9]+.[0-9]+),(?P<z>-?[0-9]+.[0-9]+)\\\\n'$")
+regex_kinect = re.compile("(?P<number>[0-9]+);(?P<x>-?[0-9]+.[0-9]+);(?P<y>-?[0-9]+.[0-9]+);(?P<z>-?[0-9]+.[0-9]+)")
+regex_kinect_time = re.compile("^b'.+E;(?P<time>[0-9]{13})\\\\n'$")
 kinect_pos = []
 kinect_acc = []
 android_acc = []
@@ -131,9 +132,9 @@ class MI12:
     def __init__(self):
         loop = asyncio.get_event_loop()
         server_android = loop.create_server(ServerAndroid, '172.25.42.58', 11337)
-        # client_kinect = loop.create_connection(ClientKinect, '172.25.13.82', 8888)
+        client_kinect = loop.create_connection(ClientKinect, '172.25.13.82', 8888)
         loop.run_until_complete(server_android)
-        # loop.run_until_complete(client_kinect)
+        loop.run_until_complete(client_kinect)
         # testAndroid()
         # testKinect()
         loop.run_forever()
@@ -141,29 +142,36 @@ class MI12:
 class ClientKinect(asyncio.Protocol):
     def connection_made(self, transport):
         print('Kinect connected')
+        self.transport = transport
 
     def connection_lost(self, exc):
         print('Kinect disconnected')
 
-    def data_received(self, data):
-        print('Kinect says: ', str(data))
-        extracted_data = self.extractData(str(data))
-        if extracted_data is not None:
-            kinect_pos.append(extracted_data)
-            if len(kinect_pos) == 3:
-                acc = self.compute_acc(kinect_pos[0], kinect_pos[1], kinect_pos[2])
-                kinect_acc.append(acc)
-                del kinect_pos[0]
-                mergeData()
-                choosen = choose()
-                self.transport.write(str(choosen))
-        else:
-            print("Wrong kinect data")
+    def data_received(self, raw_data):
+        # print('Kinect says: ', str(raw_data))
+        global kinect_read_buffer
+        kinect_read_buffer += str(raw_data)
+        splited = str(kinect_read_buffer).split('\n')
+        for data in splited:
+            kinect_read_buffer = ""
+            extracted_data = self.extractData(str(data))
+            if extracted_data is not None:
+                print(str(data))
+                kinect_pos.append(extracted_data)
+                if len(kinect_pos) == 3:
+                    acc = self.compute_acc(kinect_pos[0], kinect_pos[1], kinect_pos[2])
+                    kinect_acc.append(acc)
+                    del kinect_pos[0]
+                    mergeData()
+                    choosen = choose()
+                    self.transport.write((str(choosen)+str('\n')).encode())
+            else:
+                kinect_read_buffer = data
+                # print("Wrong kinect data")
 
     def extractData(self, raw_input):
         time_group = regex_kinect_time.match(raw_input)
         coord_match = regex_kinect.finditer(raw_input)
-        print(raw_input)
         if coord_match and time_group:
             time = float(time_group.group('time'))/1000
             coords = {}
