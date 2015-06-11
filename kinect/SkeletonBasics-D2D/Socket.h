@@ -24,7 +24,8 @@ class Socket
 
 	UINT64 currentFrameTime;
 	void _send(char* buffer);
-	//void _parse();
+	void _parse();
+	int _parseString(const char* in);
 
 	int _lastHand;
 public:
