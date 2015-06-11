@@ -6,8 +6,9 @@ from statistics import variance
 
 # f = open('test2.txt', 'w')
 kinect_read_buffer = ""
+android_read_buffer = ""
 
-regex_android = re.compile("^b'(?P<time>[0-9]{13}),ACCEL,(?P<x>-?[0-9]+.[0-9]+),(?P<y>-?[0-9]+.[0-9]+),(?P<z>-?[0-9]+.[0-9]+)\\\\n'$")
+regex_android = re.compile("^'b'(?P<time>[0-9]{13}),ACCEL,(?P<x>-?[0-9]+.[0-9]+),(?P<y>-?[0-9]+.[0-9]+),(?P<z>-?[0-9]+.[0-9]+)$")
 regex_kinect = re.compile("(?P<number>[0-9]+);(?P<x>-?[0-9]+.[0-9]+);(?P<y>-?[0-9]+.[0-9]+);(?P<z>-?[0-9]+.[0-9]+)")
 regex_kinect_time = re.compile("^b'.+E;(?P<time>[0-9]{13})\\\\n'$")
 kinect_pos = []
@@ -132,9 +133,9 @@ class MI12:
     def __init__(self):
         loop = asyncio.get_event_loop()
         server_android = loop.create_server(ServerAndroid, '172.25.42.58', 11337)
-        client_kinect = loop.create_connection(ClientKinect, '172.25.13.82', 8888)
+        # client_kinect = loop.create_connection(ClientKinect, '172.25.13.82', 8888)
         loop.run_until_complete(server_android)
-        loop.run_until_complete(client_kinect)
+        # loop.run_until_complete(client_kinect)
         # testAndroid()
         # testKinect()
         loop.run_forever()
@@ -156,7 +157,6 @@ class ClientKinect(asyncio.Protocol):
             kinect_read_buffer = ""
             extracted_data = self.extractData(str(data))
             if extracted_data is not None:
-                print(str(data))
                 kinect_pos.append(extracted_data)
                 if len(kinect_pos) == 3:
                     acc = self.compute_acc(kinect_pos[0], kinect_pos[1], kinect_pos[2])
@@ -211,11 +211,17 @@ class ServerAndroid(asyncio.Protocol):
     def connection_lost(self, exc):
         print('Android disconnected')
 
-    def data_received(self, data):
-        print('Android says: ', data)
-        extracted_data = self.extractData(str(data))
-        if extracted_data is not None:
-            android_acc.append(extracted_data)
+    def data_received(self, raw_data):
+        global android_read_buffer
+        android_read_buffer += str(raw_data)
+        splited = str(android_read_buffer).split("\\n")
+        for data in splited:
+            extracted_data = self.extractData(str(data))
+            if extracted_data is not None:
+                kinect_read_buffer = ""
+                android_acc.append(extracted_data)
+            else:
+                kinect_read_buffer = data
 
     def extractData(self, raw_input):
         data = regex_android.match(raw_input)
