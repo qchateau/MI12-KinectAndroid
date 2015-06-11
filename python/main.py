@@ -8,7 +8,7 @@ from statistics import variance
 kinect_read_buffer = ""
 android_read_buffer = ""
 
-regex_android = re.compile("^'b'(?P<time>[0-9]{13}),ACCEL,(?P<x>-?[0-9]+.[0-9]+),(?P<y>-?[0-9]+.[0-9]+),(?P<z>-?[0-9]+.[0-9]+)$")
+regex_android = re.compile("(?P<time>[0-9]{13}),ACCEL,(?P<x>-?[0-9]+.[0-9]+),(?P<y>-?[0-9]+.[0-9]+),(?P<z>-?[0-9]+.[0-9]+)")
 regex_kinect = re.compile("(?P<number>[0-9]+);(?P<x>-?[0-9]+.[0-9]+);(?P<y>-?[0-9]+.[0-9]+);(?P<z>-?[0-9]+.[0-9]+)")
 regex_kinect_time = re.compile("^b'.+E;(?P<time>[0-9]{13})\\\\n'$")
 kinect_pos = []
@@ -132,7 +132,7 @@ class Coord:
 class MI12:
     def __init__(self):
         loop = asyncio.get_event_loop()
-        server_android = loop.create_server(ServerAndroid, '172.25.42.58', 11337)
+        server_android = loop.create_server(ServerAndroid, '192.168.1.69', 11337)
         # client_kinect = loop.create_connection(ClientKinect, '172.25.13.82', 8888)
         loop.run_until_complete(server_android)
         # loop.run_until_complete(client_kinect)
