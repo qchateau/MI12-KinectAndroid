@@ -422,9 +422,18 @@ void CSkeletonBasics::DrawSkeleton(const NUI_SKELETON_DATA & skel, int skel_id, 
     {
         D2D1_ELLIPSE ellipse = D2D1::Ellipse( m_Points[i], g_JointThickness, g_JointThickness );
 
-		if (i == NUI_SKELETON_POSITION_HAND_LEFT || i == NUI_SKELETON_POSITION_HAND_RIGHT)
-		{
-			m_pRenderTarget->FillEllipse(ellipse, m_pBrushJointHand);
+
+		if (i == NUI_SKELETON_POSITION_HAND_LEFT || i == NUI_SKELETON_POSITION_HAND_RIGHT) {
+			int corresId = skel_id * 2;
+			if (   (i == NUI_SKELETON_POSITION_HAND_LEFT  && socket.lastHand() == corresId    )
+				|| (i == NUI_SKELETON_POSITION_HAND_RIGHT && socket.lastHand() == corresId + 1)  ){
+				ellipse = D2D1::Ellipse(m_Points[i], 10.0f, 10.0f);
+				m_pRenderTarget->FillEllipse(ellipse, m_pBrushJointSelectedHand);
+			}
+			else{
+				m_pRenderTarget->FillEllipse(ellipse, m_pBrushJointHand);
+			}
+			
 		}
 		else if (skel.eSkeletonPositionTrackingState[i] == NUI_SKELETON_POSITION_INFERRED)
         {
@@ -533,7 +542,8 @@ HRESULT CSkeletonBasics::EnsureDirect2DResources()
         m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Green, 1.0f), &m_pBrushBoneTracked);
         m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Gray, 1.0f), &m_pBrushBoneInferred);
 
-		m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Red, 1.0f), &m_pBrushJointHand);
+		m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::HotPink, 1.0f), &m_pBrushJointHand);
+		m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Red, 1.0f), &m_pBrushJointSelectedHand);
     }
 
     return hr;
@@ -551,6 +561,7 @@ void CSkeletonBasics::DiscardDirect2DResources( )
     SafeRelease(m_pBrushBoneTracked);
     SafeRelease(m_pBrushBoneInferred);
 	SafeRelease(m_pBrushJointHand);
+	SafeRelease(m_pBrushJointSelectedHand);
 }
 
 /// <summary>

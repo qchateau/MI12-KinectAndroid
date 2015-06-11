@@ -61,7 +61,7 @@ void Socket::_accept(){
 		fprintf(print_out, "ERROR accept failed with error code : %d", WSAGetLastError());
 	}
 	else{
-		send(connection, "Hello world!\r\n", 14, 0);
+		send(connection, "Hello world!\n", 14, 0);
 		u_long iMode = 1; //need pointer for one value...
 		ioctlsocket(connection, FIONBIO, &iMode); //set non-blocking mode
 		//closesocket(connection);
@@ -174,7 +174,12 @@ void Socket::_parse(){
 	fprintf(print_out, "recv:%s\n", buffer);
 
 	_lastHand = _parseString(buffer);
-	fprintf(print_out, "HAND FOUND:%i\n", _lastHand);
+	if (_lastHand >= 0){
+		fprintf(print_out, "HAND FOUND:%i\n", _lastHand);
+	}else{
+		fprintf(print_out, "HAND NO   :%i\n", _lastHand);
+	}
+	
 
 
 }
@@ -194,6 +199,7 @@ void Socket::_send(char* buffer){
 	//fprintf(print_out, "%s", buffer);
 	size_t size = strlen(buffer);
 	fwrite(buffer, sizeof(char), size, print_out);
+	//fprintf(print_out, "\n");
 	if (connected) {
 		int sent = send(connection, buffer, size, 0);
 		if (sent != size){
@@ -215,6 +221,6 @@ void Socket::frame(boolean start){
 
 void Socket::pushHand(int hand_id, const Vector4 &vec){
 	char buffer[256];
-	sprintf_s(buffer, sizeof(buffer), "%i;%f;%f;%f\n", hand_id, vec.x, vec.y, vec.z);
+	sprintf_s(buffer, sizeof(buffer), "%i;%f;%f;%f;", hand_id, vec.x, vec.y, vec.z);
 	_send(buffer);
 };

@@ -75,6 +75,7 @@ private:
     ID2D1SolidColorBrush*    m_pBrushBoneTracked;
     ID2D1SolidColorBrush*    m_pBrushBoneInferred;
 	ID2D1SolidColorBrush*	 m_pBrushJointHand;
+	ID2D1SolidColorBrush*	 m_pBrushJointSelectedHand;
     D2D1_POINT_2F            m_Points[NUI_SKELETON_POSITION_COUNT];
 
     // Direct2D
