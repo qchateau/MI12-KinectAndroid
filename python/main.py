@@ -15,6 +15,14 @@ kinect_pos = []
 kinect_acc = []
 android_acc = []
 merged_data = []
+FREQ = 3
+
+def lowPassFilter(data, old_data, dt, freq):
+    dt = dt/1000.0
+    RC = 2*math.pi*freq
+    a = dt / (RC + dt)
+    d = a*data + (1-a)*old_data
+    return d
 
 def mergeData():
     if len(kinect_acc) > 0:
@@ -132,7 +140,7 @@ class Coord:
 class MI12:
     def __init__(self):
         loop = asyncio.get_event_loop()
-        server_android = loop.create_server(ServerAndroid, '192.168.1.69', 11337)
+        server_android = loop.create_server(ServerAndroid, '172.25.32.205', 11337)
         # client_kinect = loop.create_connection(ClientKinect, '172.25.13.82', 8888)
         loop.run_until_complete(server_android)
         # loop.run_until_complete(client_kinect)
@@ -219,6 +227,7 @@ class ServerAndroid(asyncio.Protocol):
             extracted_data = self.extractData(str(data))
             if extracted_data is not None:
                 kinect_read_buffer = ""
+                extracted_data = self.filter(extracted_data)
                 android_acc.append(extracted_data)
             else:
                 kinect_read_buffer = data
@@ -229,6 +238,23 @@ class ServerAndroid(asyncio.Protocol):
             return (float(data.group('time'))/1000, Coord(data.group('x'), data.group('y'), data.group('z')))
         else:
             return None
+
+    def filter(self, data, f=FREQ):
+        if not hasattr(self, 'old_data'):
+            self.old_data = None
+        
+        if self.old_data is None:
+            self.old_data = data
+            return data
+
+        new_data = (data[0], \
+            Coord( \
+            lowPassFilter(data[1].x, self.old_data[1].x, data[0]-self.old_data[0], f), \
+            lowPassFilter(data[1].y, self.old_data[1].y, data[0]-self.old_data[0], f), \
+            lowPassFilter(data[1].z, self.old_data[1].z, data[0]-self.old_data[0], f)))
+
+        self.old_data = new_data
+        return new_data
 
 if __name__ == "__main__":
     MI12()
