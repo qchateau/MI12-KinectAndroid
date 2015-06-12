@@ -122,7 +122,7 @@ int Socket::_parseString(const char* in){
 	}
 	strcat(streamPos, in);
 	streamPos += inSize;
-	fprintf(printErr, "Stream:{%s}\n", stream);
+	//fprintf(printErr, "Stream:{%s}\n", stream);
 
 
 	char* lastPos = myStrrchr(stream, streamPos, '\n');
@@ -131,19 +131,19 @@ int Socket::_parseString(const char* in){
 		if (beforeLastPos != NULL) discarding = false;
 		if (!discarding){
 			if (beforeLastPos == NULL) beforeLastPos = stream - 1;
-			fprintf(printErr, "beforeLastPos=%i lastPos=%i\n", (beforeLastPos - stream) / sizeof(char), (lastPos - stream) / sizeof(char));
+			//fprintf(printErr, "beforeLastPos=%i lastPos=%i\n", (beforeLastPos - stream) / sizeof(char), (lastPos - stream) / sizeof(char));
 			size_t idSize = lastPos - beforeLastPos - 1;
 			//idSize might be 0
-			fprintf(printErr, "found idSize=%i\n", idSize);
+			//fprintf(printErr, "found idSize=%i\n", idSize);
 			char idString[128];
 			if (idSize <= ARRAY_SIZE(idString) - 1 && idSize > 0){ //room for \0
 				memcpy(idString, beforeLastPos + 1, idSize);
 				idString[idSize] = '\0';
-				fprintf(printErr, "idString={%s}\n", idString);
+				//fprintf(printErr, "idString={%s}\n", idString);
 				char* end;
 				int id = strtod(idString, &end);
 				if (end != idString){ //something found
-					fprintf(printErr, "HAND_ID=%i\n", id);
+					//fprintf(printErr, "HAND_ID=%i\n", id);
 					return id;
 				}
 				else {

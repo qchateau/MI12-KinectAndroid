@@ -60,7 +60,8 @@ def choose():
             if key not in diff_dict:
                 diff_dict[key] = []
             s_acc_kinect = math.sqrt(value.x*value.x+value.y*value.y+value.z*value.z)
-            ratio = (s_acc_android-s_acc_kinect)/s_acc_android
+            print(s_acc_kinect)
+            ratio = s_acc_kinect/s_acc_android
             diff_dict[key].append(ratio)
             # print("key")
             # print(key)
@@ -71,7 +72,10 @@ def choose():
         if len(value) > 2:
             # print(key)
             # print(value)
-            var_dict[key] = variance(value)
+            v = variance(value)
+            # print(str(key)+':'+str(v))
+            if v> 0.2:
+                var_dict[key] = v
     if var_dict:
         best_key = min(var_dict, key=var_dict.get)
         print("Choose ", best_key)
@@ -132,10 +136,10 @@ class Coord:
 class MI12:
     def __init__(self):
         loop = asyncio.get_event_loop()
-        server_android = loop.create_server(ServerAndroid, '192.168.1.69', 11337)
-        # client_kinect = loop.create_connection(ClientKinect, '172.25.13.82', 8888)
+        server_android = loop.create_server(ServerAndroid, '172.25.13.82', 11337)
+        client_kinect = loop.create_connection(ClientKinect, '172.25.13.82', 8888)
         loop.run_until_complete(server_android)
-        # loop.run_until_complete(client_kinect)
+        loop.run_until_complete(client_kinect)
         # testAndroid()
         # testKinect()
         loop.run_forever()
