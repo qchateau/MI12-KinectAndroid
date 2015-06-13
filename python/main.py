@@ -19,9 +19,9 @@ kinect_pos = []
 kinect_acc = []
 android_acc = []
 merged_data = []
-FREQ = 10
+FREQ = 3
 
-TEST = True
+TEST = False
 offset = None
 
 cvs_file = open('some.csv', 'w', newline='')
@@ -50,7 +50,6 @@ def mergeData():
             global offset
             if offset is None:
                 offset = android_acc[found_index][0]
-            print(offset)
             temp = {'time': android_acc[found_index][0]-offset, 'android': android_acc[found_index][1]}
             temp.update(kinect[1])
             writer.writerow(temp)
@@ -200,10 +199,11 @@ class ClientKinect(asyncio.Protocol):
                 filtred_extracted_data = self.filter(extracted_data)
                 # print(extracted_data[0])
                 # print(str(extracted_data[1][1].x)+str('\t')+str(filtred_extracted_data[1][1].x))
-                kinect_pos.append(extracted_data)
+                kinect_pos.append(filtred_extracted_data)
                 if len(kinect_pos) == 3:
                     acc = self.compute_acc(kinect_pos[0], kinect_pos[1], kinect_pos[2])
-                    kinect_acc.append(acc)
+                    filtred_acc = self.filter(acc)
+                    kinect_acc.append(filtred_acc)
                     del kinect_pos[0]
                     mergeData()
                     choosen = choose()
