@@ -22,9 +22,10 @@ merged_data = []
 FREQ = 10
 
 TEST = True
+offset = None
 
 cvs_file = open('some.csv', 'w', newline='')
-fieldnames = ['time']
+fieldnames = ['time', 'android']
 fieldnames.extend(list(range(21)))
 writer = csv.DictWriter(cvs_file, fieldnames=fieldnames)
 writer.writeheader()
@@ -46,7 +47,11 @@ def mergeData():
                 break
         if found_index != -1:
             merged_data.append((android_acc[found_index], kinect)) # MAYBE: mean android_acc
-            temp = {'time': android_acc[found_index][0]}
+            global offset
+            if offset is None:
+                offset = android_acc[found_index][0]
+            print(offset)
+            temp = {'time': android_acc[found_index][0]-offset, 'android': android_acc[found_index][1]}
             temp.update(kinect[1])
             writer.writerow(temp)
             del android_acc[:found_index+1]
