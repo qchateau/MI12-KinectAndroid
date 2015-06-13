@@ -3,6 +3,8 @@ import re
 import asyncio
 import math
 import numpy
+import csv
+
 # from statistics import variance
 # import scipy
 
@@ -19,7 +21,13 @@ android_acc = []
 merged_data = []
 FREQ = 10
 
-TEST = False
+TEST = True
+
+cvs_file = open('some.csv', 'w', newline='')
+fieldnames = ['time']
+fieldnames.extend(list(range(21)))
+writer = csv.DictWriter(cvs_file, fieldnames=fieldnames)
+writer.writeheader()
 
 def lowPassFilter(data, old_data, dt, freq):
     RC = 1/(2*math.pi*freq)
@@ -37,7 +45,10 @@ def mergeData():
                 found_index = i
                 break
         if found_index != -1:
-            merged_data.append((android_acc[found_index], kinect_acc[0])) # MAYBE: mean android_acc
+            merged_data.append((android_acc[found_index], kinect)) # MAYBE: mean android_acc
+            temp = {'time': android_acc[found_index][0]}
+            temp.update(kinect[1])
+            writer.writerow(temp)
             del android_acc[:found_index+1]
             del kinect_acc[0]
             removeOldNumbers()
@@ -145,6 +156,9 @@ class Coord:
         self.x = float(x)
         self.y = float(y)
         self.z = float(z)
+
+    def __str__(self):
+        return str(math.sqrt(self.x*self.x+self.y*self.y+self.z*self.z))
 
 class MI12:
     def __init__(self):
