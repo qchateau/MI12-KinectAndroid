@@ -2,7 +2,9 @@ import socket
 import re
 import asyncio
 import math
-from statistics import variance
+import numpy
+# from statistics import variance
+# import scipy
 
 # f = open('test2.txt', 'w')
 kinect_read_buffer = ""
@@ -10,16 +12,17 @@ android_read_buffer = ""
 
 regex_android = re.compile("(?P<time>[0-9]{13}),ACCEL,(?P<x>-?[0-9]+.[0-9]+),(?P<y>-?[0-9]+.[0-9]+),(?P<z>-?[0-9]+.[0-9]+)")
 regex_kinect = re.compile("(?P<number>[0-9]+);(?P<x>-?[0-9]+.[0-9]+);(?P<y>-?[0-9]+.[0-9]+);(?P<z>-?[0-9]+.[0-9]+)")
-regex_kinect_time = re.compile("^b'.+E;(?P<time>[0-9]{13})\\\\n'$")
+regex_kinect_time = re.compile("E;(?P<time>[0-9]{13})")
 kinect_pos = []
 kinect_acc = []
 android_acc = []
 merged_data = []
-FREQ = 3
+FREQ = 10
+
+TEST = False
 
 def lowPassFilter(data, old_data, dt, freq):
-    dt = dt/1000.0
-    RC = 2*math.pi*freq
+    RC = 1/(2*math.pi*freq)
     a = dt / (RC + dt)
     d = a*data + (1-a)*old_data
     return d
@@ -66,26 +69,28 @@ def choose():
         s_acc_android = math.sqrt(acc_android.x*acc_android.x+acc_android.y*acc_android.y+acc_android.z*acc_android.z)
         for key, value in acc_kinect_dict.items():
             if key not in diff_dict:
-                diff_dict[key] = []
+                diff_dict[key] = ([], [])
             s_acc_kinect = math.sqrt(value.x*value.x+value.y*value.y+value.z*value.z)
-            print(s_acc_kinect)
-            ratio = s_acc_kinect/s_acc_android
-            diff_dict[key].append(ratio)
+            # ratio = s_acc_android/s_acc_kinect
+            diff_dict[key][0].append(s_acc_android)
+            diff_dict[key][1].append(s_acc_kinect)
             # print("key")
             # print(key)
             # print(s_acc_kinect)
 
     var_dict = {}
     for key, value in diff_dict.items():
-        if len(value) > 2:
+        if len(value[0]) > 2:
             # print(key)
             # print(value)
-            v = variance(value)
-            # print(str(key)+':'+str(v))
-            if v> 0.2:
-                var_dict[key] = v
+            v = numpy.correlate(value[0][-10:], value[1][-10:])
+            # v = scipy.stats.pearsonr(value[0][-10:], value[1][-10:])
+            v = v[0]
+            print(str(key)+':'+str(v))
+            var_dict[key] = v
+
     if var_dict:
-        best_key = min(var_dict, key=var_dict.get)
+        best_key = max(var_dict, key=var_dict.get)
         print("Choose ", best_key)
         return best_key
     else:
@@ -99,40 +104,40 @@ def testAndroid():
     # while raw_string is not '':
     #     server_android.data_received(raw_string)
     #     raw_string = f.readline()
-    b = b'12345678900000,ACCEL,1.0,1.0,1.0\n'
+    b = b'1234567890000,ACCEL,1.0,1.0,1.0\n'
     server_android.data_received(b)
-    b = b'12345678900100,ACCEL,1.0,1.0,1.0\n'
+    b = b'1234567890010,ACCEL,10.0,1.0,1.0\n'
     server_android.data_received(b)
-    b = b'12345678900200,ACCEL,1.0,1.0,1.0\n'
+    b = b'1234567890020,ACCEL,10.0,1.0,1.0\n'
     server_android.data_received(b)
-    b = b'12345678900300,ACCEL,1.0,1.0,1.0\n'
+    b = b'1234567890030,ACCEL,10.0,1.0,1.0\n'
     server_android.data_received(b)
-    b = b'12345678900400,ACCEL,1.0,1.0,1.0\n'
+    b = b'1234567890040,ACCEL,10.0,1.0,1.0\n'
     server_android.data_received(b)
-    b = b'12345678900500,ACCEL,1.0,1.0,1.0\n'
+    b = b'1234567890050,ACCEL,1.0,1.0,1.0\n'
     server_android.data_received(b)
-    b = b'12345678900600,ACCEL,1.0,1.0,1.0\n'
+    b = b'1234567890060,ACCEL,1.0,1.0,1.0\n'
     server_android.data_received(b)
-    b = b'12345678900700,ACCEL,1.0,1.0,1.0\n'
+    b = b'1234567890070,ACCEL,1.0,1.0,1.0\n'
     server_android.data_received(b)
 
 def testKinect():
     client_kinect = ClientKinect()
-    a = b"1;1.1;1.1;1.1\nE;12345678900000\n"
+    a = b"1;1.1;1.1;1.1E;1234567890000\n"
     client_kinect.data_received(a)
-    a = b"1;10.2;1.1;1.1\nE;12345678900100\n"
+    a = b"1;10.2;1.1;1.1E;1234567890010\n"
     client_kinect.data_received(a)
-    a = b"1;10.3;1.1;1.1\nE;12345678900200\n"
+    a = b"1;10.3;1.1;1.1E;1234567890020\n"
     client_kinect.data_received(a)
-    a = b"1;1.4;1.1;1.1\n2;0.0;0.0;0.0\nE;12345678900300\n"
+    a = b"1;1.4;1.1;1.12;2;0.0;0.0;0.0E;1234567890030\n1;1.4;1.1;1.12;2;0.0;0.0;0.0E;1234567890030\n1;1.4;1.1;1.12;2;0.0;0.0;0.0E;1234567890030\n"
     client_kinect.data_received(a)
-    a = b"1;1.5;1.1;1.1\n2;1.0;1.0;1.0\nE;12345678900400\n"
+    a = b"1;1.5;1.1;1.12;2;1.0;1.0;1.0E;1234567890040\n"
     client_kinect.data_received(a)
-    a = b"1;10.6;1.1;1.1\n2;3.0;3.0;3.0\nE;12345678900500\n"
+    a = b"1;10.6;1.1;1.12;2;3.0;3.0;3.0E;1234567890050\n"
     client_kinect.data_received(a)
-    a = b"1;10.7;1.1;1.1\n2;6.0;6.0;6.0\nE;12345678900600\n"
+    a = b"1;10.7;1.1;1.12;2;6.0;6.0;6.0E;1234567890060\n"
     client_kinect.data_received(a)
-    a = b"1;1.8;1.1;1.1\n2;10.0;10.0;10.0\nE;12345678900700\n"
+    a = b"1;1.8;1.1;1.12;2;10.0;10.0;10.0E;1234567890070\n"
     client_kinect.data_received(a)
 
 class Coord:
@@ -143,14 +148,16 @@ class Coord:
 
 class MI12:
     def __init__(self):
-        loop = asyncio.get_event_loop()
-        server_android = loop.create_server(ServerAndroid, '172.25.13.82', 11337)
-        client_kinect = loop.create_connection(ClientKinect, '172.25.13.82', 8888)
-        loop.run_until_complete(server_android)
-        loop.run_until_complete(client_kinect)
-        # testAndroid()
-        # testKinect()
-        loop.run_forever()
+        if not TEST:
+            loop = asyncio.get_event_loop()
+            server_android = loop.create_server(ServerAndroid, '172.25.42.58', 11337)
+            client_kinect = loop.create_connection(ClientKinect, '172.25.13.82', 8888)
+            loop.run_until_complete(server_android)
+            loop.run_until_complete(client_kinect)
+            loop.run_forever()
+        else:
+            testAndroid()
+            testKinect()
 
 class ClientKinect(asyncio.Protocol):
     def connection_made(self, transport):
@@ -164,11 +171,16 @@ class ClientKinect(asyncio.Protocol):
         # print('Kinect says: ', str(raw_data))
         global kinect_read_buffer
         kinect_read_buffer += str(raw_data)
-        splited = str(kinect_read_buffer).split('\n')
+        splited = str(kinect_read_buffer).split('\\n\'')
         for data in splited:
-            kinect_read_buffer = ""
+            # print(str(data))
             extracted_data = self.extractData(str(data))
             if extracted_data is not None:
+                # print(extracted_data)
+                kinect_read_buffer = ""
+                filtred_extracted_data = self.filter(extracted_data)
+                # print(extracted_data[0])
+                # print(str(extracted_data[1][1].x)+str('\t')+str(filtred_extracted_data[1][1].x))
                 kinect_pos.append(extracted_data)
                 if len(kinect_pos) == 3:
                     acc = self.compute_acc(kinect_pos[0], kinect_pos[1], kinect_pos[2])
@@ -176,19 +188,21 @@ class ClientKinect(asyncio.Protocol):
                     del kinect_pos[0]
                     mergeData()
                     choosen = choose()
-                    self.transport.write((str(choosen)+str('\n')).encode())
+                    if not TEST:
+                        self.transport.write((str(choosen)+str('\n')).encode())
             else:
                 kinect_read_buffer = data
                 # print("Wrong kinect data")
 
     def extractData(self, raw_input):
-        time_group = regex_kinect_time.match(raw_input)
+        time_group = regex_kinect_time.search(raw_input)
         coord_match = regex_kinect.finditer(raw_input)
         if coord_match and time_group:
-            time = float(time_group.group('time'))/1000
+            time = float(time_group.group('time'))/1000.0
             coords = {}
             for coord in coord_match:
-                coords[float(coord.group('number'))] = Coord(coord.group('x'), coord.group('y'), coord.group('z'))
+                # print(int(coord.group('number')))
+                coords[int(coord.group('number'))] = Coord(coord.group('x'), coord.group('y'), coord.group('z'))
             return (time, coords)
         else:
             return None
@@ -214,6 +228,27 @@ class ClientKinect(asyncio.Protocol):
                 # print((coord2.x-coord1.x))
         return ((time2+time1)/2, coords)
 
+    def filter(self, data, f=FREQ):
+        if not hasattr(self, 'old_data'):
+            self.old_data = None
+        
+        if self.old_data is None:
+            self.old_data = data
+            return data
+        else:
+            dict_data = data[1]
+            new_data = {}
+            for key, value in dict_data.items():
+                if key in self.old_data[1]:
+                    new_data[key] = Coord( \
+                            lowPassFilter(value.x, self.old_data[1][key].x, data[0]-self.old_data[0], f), \
+                            lowPassFilter(value.y, self.old_data[1][key].y, data[0]-self.old_data[0], f), \
+                            lowPassFilter(value.z, self.old_data[1][key].z, data[0]-self.old_data[0], f)\
+                        )
+
+            self.old_data = (data[0], new_data)
+            return self.old_data
+
 class ServerAndroid(asyncio.Protocol):
     def connection_made(self, transport):
         peername = transport.get_extra_info('peername')
@@ -225,21 +260,23 @@ class ServerAndroid(asyncio.Protocol):
 
     def data_received(self, raw_data):
         global android_read_buffer
-        android_read_buffer += str(raw_data)
-        splited = str(android_read_buffer).split("\\n")
+        # android_read_buffer += str(raw_data)
+        splited = str(raw_data).split("\\n")
         for data in splited:
+            # print(str(data))
             extracted_data = self.extractData(str(data))
             if extracted_data is not None:
-                kinect_read_buffer = ""
-                extracted_data = self.filter(extracted_data)
-                android_acc.append(extracted_data)
-            else:
-                kinect_read_buffer = data
+                # android_read_buffer = ""
+                filtred_extracted_data = self.filter(extracted_data)
+                # print(str(extracted_data[1].x)+str('\t')+str(filtred_extracted_data[1].x))
+                android_acc.append(filtred_extracted_data)
+            # else:
+                # android_read_buffer = data
 
     def extractData(self, raw_input):
-        data = regex_android.match(raw_input)
+        data = regex_android.search(raw_input)
         if data:
-            return (float(data.group('time'))/1000, Coord(data.group('x'), data.group('y'), data.group('z')))
+            return (float(data.group('time'))/1000.0, Coord(data.group('x'), data.group('y'), data.group('z')))
         else:
             return None
 
@@ -251,11 +288,14 @@ class ServerAndroid(asyncio.Protocol):
             self.old_data = data
             return data
 
-        new_data = (data[0], \
-            Coord( \
-            lowPassFilter(data[1].x, self.old_data[1].x, data[0]-self.old_data[0], f), \
-            lowPassFilter(data[1].y, self.old_data[1].y, data[0]-self.old_data[0], f), \
-            lowPassFilter(data[1].z, self.old_data[1].z, data[0]-self.old_data[0], f)))
+        new_data =  (\
+                        data[0], \
+                        Coord(\
+                            lowPassFilter(data[1].x, self.old_data[1].x, data[0]-self.old_data[0], f), \
+                            lowPassFilter(data[1].y, self.old_data[1].y, data[0]-self.old_data[0], f), \
+                            lowPassFilter(data[1].z, self.old_data[1].z, data[0]-self.old_data[0], f)\
+                        )\
+                    )
 
         self.old_data = new_data
         return new_data
