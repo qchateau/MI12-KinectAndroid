@@ -34,6 +34,7 @@ def lowPassFilter(data, old_data, dt, freq):
     RC = 1/(2*math.pi*freq)
     a = dt / (RC + dt)
     d = a*data + (1-a)*old_data
+    #print('lowPass: dt='+ str(dt) + '\n\t' + str(1-a)+'*'+str(old_data) + ' + '+ str(a)+'*'+str(data)+'\n\t-> '+str(d))
     return d
 
 def mergeData():
@@ -45,6 +46,7 @@ def mergeData():
             if android[0] > kinect[0]:
                 found_index = i
                 break
+        #print('found index : '+str(found_index))
         if found_index != -1:
             merged_data.append((android_acc[found_index], kinect)) # MAYBE: mean android_acc
             global offset
@@ -79,10 +81,12 @@ def removeOldNumbers():
 def choose():
     diff_dict = {}
     for data in merged_data:
+        #print("data")
         acc_android = data[0][1]
         acc_kinect_dict = data[1][1]
         s_acc_android = math.sqrt(acc_android.x*acc_android.x+acc_android.y*acc_android.y+acc_android.z*acc_android.z)
         for key, value in acc_kinect_dict.items():
+            #print("value")
             if key not in diff_dict:
                 diff_dict[key] = ([], [])
             s_acc_kinect = math.sqrt(value.x*value.x+value.y*value.y+value.z*value.z)
@@ -138,6 +142,8 @@ def testAndroid():
 
 def testKinect():
     client_kinect = ClientKinect()
+    a = b"E;1234567890000\n"
+    client_kinect.data_received(a)
     a = b"1;1.1;1.1;1.1E;1234567890000\n"
     client_kinect.data_received(a)
     a = b"1;10.2;1.1;1.1E;1234567890010\n"
@@ -168,7 +174,7 @@ class MI12:
     def __init__(self):
         if not TEST:
             loop = asyncio.get_event_loop()
-            server_android = loop.create_server(ServerAndroid, '172.25.42.58', 11337)
+            server_android = loop.create_server(ServerAndroid, '172.25.13.82', 11337)
             client_kinect = loop.create_connection(ClientKinect, '172.25.13.82', 8888)
             loop.run_until_complete(server_android)
             loop.run_until_complete(client_kinect)
@@ -197,13 +203,13 @@ class ClientKinect(asyncio.Protocol):
                 # print(extracted_data)
                 kinect_read_buffer = ""
                 filtred_extracted_data = self.filter(extracted_data)
-                # print(extracted_data[0])
+                # print(filtred_extracted_data[1])
                 # print(str(extracted_data[1][1].x)+str('\t')+str(filtred_extracted_data[1][1].x))
                 kinect_pos.append(filtred_extracted_data)
-                if len(kinect_pos) == 3:
+                if len(kinect_pos) == 3 :
                     acc = self.compute_acc(kinect_pos[0], kinect_pos[1], kinect_pos[2])
-                    filtred_acc = self.filter(acc)
-                    kinect_acc.append(filtred_acc)
+                    #filtred_acc = self.filter(acc)
+                    kinect_acc.append(acc)
                     del kinect_pos[0]
                     mergeData()
                     choosen = choose()
@@ -221,7 +227,9 @@ class ClientKinect(asyncio.Protocol):
             coords = {}
             for coord in coord_match:
                 # print(int(coord.group('number')))
-                coords[int(coord.group('number'))] = Coord(coord.group('x'), coord.group('y'), coord.group('z'))
+                c = Coord(coord.group('x'), coord.group('y'), coord.group('z'))
+                coords[int(coord.group('number'))] = c
+                # print(str(time)+str(c))
             return (time, coords)
         else:
             return None
@@ -258,12 +266,15 @@ class ClientKinect(asyncio.Protocol):
             dict_data = data[1]
             new_data = {}
             for key, value in dict_data.items():
-                if key in self.old_data[1]:
+                if key in self.old_data[1] :
+                    print(str(value)+ ' ; '+str(self.old_data[1][key]))
                     new_data[key] = Coord( \
                             lowPassFilter(value.x, self.old_data[1][key].x, data[0]-self.old_data[0], f), \
                             lowPassFilter(value.y, self.old_data[1][key].y, data[0]-self.old_data[0], f), \
                             lowPassFilter(value.z, self.old_data[1][key].z, data[0]-self.old_data[0], f)\
                         )
+                else:
+                    new_data[key] = value
 
             self.old_data = (data[0], new_data)
             return self.old_data
