@@ -26,7 +26,7 @@ offset = None
 
 cvs_file = open('some.csv', 'w', newline='')
 fieldnames = ['time', 'android']
-fieldnames.extend(list(range(21)))
+fieldnames.extend(list(range(41)))
 writer = csv.DictWriter(cvs_file, fieldnames=fieldnames)
 writer.writeheader()
 
@@ -52,8 +52,43 @@ def mergeData():
             global offset
             if offset is None:
                 offset = android_acc[found_index][0]
+
+
+            diff_dict = {}
+            for data in merged_data:
+                #print("data")
+                acc_android = data[0][1]
+                acc_kinect_dict = data[1][1]
+                s_acc_android = math.sqrt(acc_android.x*acc_android.x+acc_android.y*acc_android.y+acc_android.z*acc_android.z)
+                for key, value in acc_kinect_dict.items():
+                    #print("value")
+                    if key not in diff_dict:
+                        diff_dict[key] = ([], [])
+                    s_acc_kinect = math.sqrt(value.x*value.x+value.y*value.y+value.z*value.z)
+                    # ratio = s_acc_android/s_acc_kinect
+                    diff_dict[key][0].append(s_acc_android)
+                    diff_dict[key][1].append(s_acc_kinect)
+                    # print("key")
+                    # print(key)
+                    # print(s_acc_kinect)
+
+            var_dict = {}
+            for key, value in diff_dict.items():
+                if len(value[0]) > 2:
+                    # print(key)
+                    # print(value)
+                    # for v1 in value[0][-10:]
+                    #     dist = 
+                    v = numpy.correlate(value[0][-10:], value[1][-10:])
+                    # v = scipy.stats.pearsonr(value[0][-10:], value[1][-10:])
+                    v = v[0]
+                    # print(str(key)+':'+str(v))
+                    var_dict[key+21] =v
+
+
             temp = {'time': android_acc[found_index][0]-offset, 'android': android_acc[found_index][1]}
             temp.update(kinect[1])
+            temp.update(var_dict)
             writer.writerow(temp)
             del android_acc[:found_index+1]
             del kinect_acc[0]
@@ -102,10 +137,12 @@ def choose():
         if len(value[0]) > 2:
             # print(key)
             # print(value)
+            # for v1 in value[0][-10:]
+            #     dist = 
             v = numpy.correlate(value[0][-10:], value[1][-10:])
             # v = scipy.stats.pearsonr(value[0][-10:], value[1][-10:])
             v = v[0]
-            print(str(key)+':'+str(v))
+            # print(str(key)+':'+str(v))
             var_dict[key] = v
 
     if var_dict:
@@ -139,12 +176,14 @@ def testAndroid():
     server_android.data_received(b)
     b = b'1234567890070,ACCEL,1.0,1.0,1.0\n'
     server_android.data_received(b)
+    b = b'1234567890080,ACCEL,1.0,1.0,1.0\n'
+    server_android.data_received(b)
 
 def testKinect():
     client_kinect = ClientKinect()
     client_kinect.connection_made(None)
-    a = b"E;1234567890000\n"
-    client_kinect.data_received(a)
+    # a = b"E;1234567890000\n"
+    # client_kinect.data_received(a)
     a = b"1;1.1;1.1;1.1E;1234567890000\n"
     client_kinect.data_received(a)
     a = b"1;10.2;1.1;1.1E;1234567890010\n"
@@ -160,6 +199,8 @@ def testKinect():
     a = b"1;10.7;1.1;1.12;2;6.0;6.0;6.0E;1234567890060\n"
     client_kinect.data_received(a)
     a = b"1;1.8;1.1;1.12;2;10.0;10.0;10.0E;1234567890070\n"
+    client_kinect.data_received(a)
+    a = b"1;1.8;1.1;1.12;2;10.0;10.0;10.0E;1234567890080\n"
     client_kinect.data_received(a)
 
 class Coord:
@@ -212,6 +253,7 @@ class ClientKinect(asyncio.Protocol):
                 if len(kinect_pos) == 3 :
                     acc = self.compute_acc(kinect_pos[0], kinect_pos[1], kinect_pos[2])
                     filtred_acc = self.filter(self.old_data_acc, acc)
+                    print(str(acc[1][1].x)+str('\t')+str(filtred_acc[1][1].x))
                     kinect_acc.append(filtred_acc)
                     del kinect_pos[0]
                     mergeData()
@@ -267,7 +309,7 @@ class ClientKinect(asyncio.Protocol):
             new_data = {}
             for key, value in dict_data.items():
                 if key in old_data[0][1] :
-                    print(str(value)+ ' ; '+str(old_data[0][1][key]))
+                    # print(str(value)+ ' ; '+str(old_data[0][1][key]))
                     new_data[key] = Coord( \
                             lowPassFilter(value.x, old_data[0][1][key].x, data[0]-old_data[0][0], f), \
                             lowPassFilter(value.y, old_data[0][1][key].y, data[0]-old_data[0][0], f), \
