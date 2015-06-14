@@ -26,7 +26,7 @@ offset = None
 
 cvs_file = open('some.csv', 'w', newline='')
 fieldnames = ['time', 'android']
-fieldnames.extend(list(range(41)))
+fieldnames.extend(list(range(42)))
 writer = csv.DictWriter(cvs_file, fieldnames=fieldnames)
 writer.writeheader()
 
@@ -74,16 +74,21 @@ def mergeData():
 
             var_dict = {}
             for key, value in diff_dict.items():
-                if len(value[0]) > 2:
+                if len(value[0]) > 5:
                     # print(key)
                     # print(value)
                     # for v1 in value[0][-10:]
                     #     dist = 
-                    v = numpy.corrcoef(value[0][-10:], value[1][-10:])
-                    # v = scipy.stats.pearsonr(value[0][-10:], value[1][-10:])
-                    v = v[0][1]
-                    print(str(key)+':'+str(v))
-                    var_dict[key+21] =v
+                    # v = numpy.corrcoef(value[0][-10:], value[1][-10:])
+                    # # v = scipy.stats.pearsonr(value[0][-10:], value[1][-10:])
+                    # v = v[0][1]
+                    dist = 0
+                    l = value[0][-25:]
+                    l.reverse()
+                    for i, v1 in enumerate(l):
+                        dist += abs(v1-value[1][-i])
+                    print(str(key)+':'+str(dist))
+                    var_dict[key+21] = dist
 
 
             temp = {'time': android_acc[found_index][0]-offset, 'android': android_acc[found_index][1]}
@@ -134,19 +139,22 @@ def choose():
 
     var_dict = {}
     for key, value in diff_dict.items():
-        if len(value[0]) > 2:
+        if len(value[0]) > 5:
             # print(key)
             # print(value)
-            # for v1 in value[0][-10:]
-            #     dist = 
-            v = numpy.corrcoef(value[0][-10:], value[1][-10:])
+            dist = 0
+            l = value[0][-25:]
+            l.reverse()
+            for i, v1 in enumerate(l):
+                dist += abs(v1-value[1][-i])
+            # v = numpy.corrcoef(value[0][-10:], value[1][-10:])
+            # v = v[0][1]
             # v = scipy.stats.pearsonr(value[0][-10:], value[1][-10:])
-            v = v[0][1]
             # print(str(key)+':'+str(v))
-            var_dict[key] = v
+            var_dict[key] = dist
 
     if var_dict:
-        best_key = max(var_dict, key=var_dict.get)
+        best_key = min(var_dict, key=var_dict.get)
         print("Choose ", best_key)
         return best_key
     else:
@@ -253,7 +261,7 @@ class ClientKinect(asyncio.Protocol):
                 if len(kinect_pos) == 3 :
                     acc = self.compute_acc(kinect_pos[0], kinect_pos[1], kinect_pos[2])
                     filtred_acc = self.filter(self.old_data_acc, acc)
-                    print(str(acc[1][1].x)+str('\t')+str(filtred_acc[1][1].x))
+                    # print(str(acc[1][1].x)+str('\t')+str(filtred_acc[1][1].x))
                     kinect_acc.append(filtred_acc)
                     del kinect_pos[0]
                     mergeData()
