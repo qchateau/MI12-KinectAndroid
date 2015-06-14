@@ -79,10 +79,10 @@ def mergeData():
                     # print(value)
                     # for v1 in value[0][-10:]
                     #     dist = 
-                    v = numpy.correlate(value[0][-10:], value[1][-10:])
+                    v = numpy.corrcoef(value[0][-10:], value[1][-10:])
                     # v = scipy.stats.pearsonr(value[0][-10:], value[1][-10:])
-                    v = v[0]
-                    # print(str(key)+':'+str(v))
+                    v = v[0][1]
+                    print(str(key)+':'+str(v))
                     var_dict[key+21] =v
 
 
@@ -139,9 +139,9 @@ def choose():
             # print(value)
             # for v1 in value[0][-10:]
             #     dist = 
-            v = numpy.correlate(value[0][-10:], value[1][-10:])
+            v = numpy.corrcoef(value[0][-10:], value[1][-10:])
             # v = scipy.stats.pearsonr(value[0][-10:], value[1][-10:])
-            v = v[0]
+            v = v[0][1]
             # print(str(key)+':'+str(v))
             var_dict[key] = v
 
