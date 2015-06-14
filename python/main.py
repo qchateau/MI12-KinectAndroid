@@ -142,6 +142,7 @@ def testAndroid():
 
 def testKinect():
     client_kinect = ClientKinect()
+    client_kinect.connection_made(None)
     a = b"E;1234567890000\n"
     client_kinect.data_received(a)
     a = b"1;1.1;1.1;1.1E;1234567890000\n"
@@ -186,6 +187,8 @@ class MI12:
 class ClientKinect(asyncio.Protocol):
     def connection_made(self, transport):
         print('Kinect connected')
+        self.old_data_pos = [None]
+        self.old_data_acc = [None]
         self.transport = transport
 
     def connection_lost(self, exc):
@@ -202,14 +205,14 @@ class ClientKinect(asyncio.Protocol):
             if extracted_data is not None:
                 # print(extracted_data)
                 kinect_read_buffer = ""
-                filtred_extracted_data = self.filter(extracted_data)
+                filtred_extracted_data = self.filter(self.old_data_pos, extracted_data)
                 # print(filtred_extracted_data[1])
                 # print(str(extracted_data[1][1].x)+str('\t')+str(filtred_extracted_data[1][1].x))
                 kinect_pos.append(filtred_extracted_data)
                 if len(kinect_pos) == 3 :
                     acc = self.compute_acc(kinect_pos[0], kinect_pos[1], kinect_pos[2])
-                    #filtred_acc = self.filter(acc)
-                    kinect_acc.append(acc)
+                    filtred_acc = self.filter(self.old_data_acc, acc)
+                    kinect_acc.append(filtred_acc)
                     del kinect_pos[0]
                     mergeData()
                     choosen = choose()
@@ -255,29 +258,26 @@ class ClientKinect(asyncio.Protocol):
                 # print((coord2.x-coord1.x))
         return ((time2+time1)/2, coords)
 
-    def filter(self, data, f=FREQ):
-        if not hasattr(self, 'old_data'):
-            self.old_data = None
-        
-        if self.old_data is None:
-            self.old_data = data
+    def filter(self, old_data, data, f=FREQ):
+        if old_data[0] is None:
+            old_data[0] = data
             return data
         else:
             dict_data = data[1]
             new_data = {}
             for key, value in dict_data.items():
-                if key in self.old_data[1] :
-                    print(str(value)+ ' ; '+str(self.old_data[1][key]))
+                if key in old_data[0][1] :
+                    print(str(value)+ ' ; '+str(old_data[0][1][key]))
                     new_data[key] = Coord( \
-                            lowPassFilter(value.x, self.old_data[1][key].x, data[0]-self.old_data[0], f), \
-                            lowPassFilter(value.y, self.old_data[1][key].y, data[0]-self.old_data[0], f), \
-                            lowPassFilter(value.z, self.old_data[1][key].z, data[0]-self.old_data[0], f)\
+                            lowPassFilter(value.x, old_data[0][1][key].x, data[0]-old_data[0][0], f), \
+                            lowPassFilter(value.y, old_data[0][1][key].y, data[0]-old_data[0][0], f), \
+                            lowPassFilter(value.z, old_data[0][1][key].z, data[0]-old_data[0][0], f)\
                         )
                 else:
                     new_data[key] = value
 
-            self.old_data = (data[0], new_data)
-            return self.old_data
+            old_data[0] = (data[0], new_data)
+            return old_data[0]
 
 class ServerAndroid(asyncio.Protocol):
     def connection_made(self, transport):
