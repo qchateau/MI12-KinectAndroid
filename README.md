@@ -1,1 +1,1 @@
-# MI12
+# Android detection in a Kinect scene
